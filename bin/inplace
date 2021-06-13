@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
+declare FILE=
+declare FILE_TEMP=
+
+FILE=$1
+shift
+
+if ! [[ -f $FILE ]]; then
+	echo Only operates on regular files.
+	exit 1
+fi
+
+if [[ $# -ne 0 ]]; then
+	exit 0 #identity situation
+fi
+
+trap 'rm --force "$FILE_TEMP"' ERR
+FILE_TEMP=$(mktemp --quiet --tmpdir="$(dirname "$FILE")" '.inplace.XXXXXXXXXX~')
+
+if "$@" < "$FILE" > "$FILE_TEMP";
+	then mv "$FILE_TEMP" "$FILE"
+	else exit 1
+fi
