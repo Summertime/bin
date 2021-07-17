@@ -1,3 +1,50 @@
-#!/usr/bin/env -S gawk -f
-	{ a += $0 }
-END	{ print a }
+#!/usr/bin/env sh
+set -o errexit -o nounset -o pipefail
+shopt -s extglob
+H='
+Usage:
+	+ [-] [Numbers ...]
+Notes:
+	Without args, STDIN parsing will be assumed
+Examples:
+	+ 1 2 3
+	echo 1 2 3 | +
+	echo 1 2 3 | + - 4 5 6
+Bugs:
+	Doesn'\''t correctly error on invalid values
+';H=${H%%*([[:space:]])};H=${H##*([[:space:]])}
+
+STDIN=
+ARGS=()
+
+if [[ $# -eq 0 ]]; then
+	STDIN=YES
+elif [[ $# -eq 1 && $1 = @(-h|--help) ]]; then
+	echo "$H"
+	exit
+else
+	for A in "$@"; do
+		if [[ $A = - ]]; then
+			STDIN=YES
+		else
+			ARGS+=("$A")
+		fi
+	done
+fi
+
+
+{
+	printf '%s\n' "${ARGS[@]}"
+	if [[ $STDIN ]]; then
+		cat
+	fi
+} | awk -- '
+	{
+		for(i=1; i<=NF; i++) {
+			total += $i
+		}
+	}
+	END {
+		print total
+	}
+'
