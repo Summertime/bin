@@ -1,3 +1,0 @@
-#!/usr/bin/env -S gawk -f
-	{ a += $0 }
-END	{ print a/NR }
