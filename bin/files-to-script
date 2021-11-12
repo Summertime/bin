@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+{
+set -o errexit -o pipefail
+NAME=files-to-script
+GETOPT=(
+	-o 'htd:'
+	-l 'help,tab,delimiter:'
+)
+DELIMITER=EOF
+TAB=
+eval set -- "$(getopt -n "$NAME" "${GETOPT[@]}" -- "$@")"
+while :; do case "$1" in
+	-h|--help)
+		echo "$NAME [options] <files...>"
+		exit
+		;;
+	-d|--delimiter)
+		DELIMITER=$2
+		shift 2
+		;;
+	-t|--tab)
+		TAB=yes
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+esac; done
+for F in "$@"; do
+	if [[ $TAB ]]; then
+		printf "cat %s <<- '%s'\n" "${F@Q}" "$DELIMITER"
+		cat "$F" | sed 's/^/\t/'
+	else
+		printf "cat %s << '%s'\n" "${F@Q}" "$DELIMITER"
+		cat "$F"
+	fi
+	printf '%s\n' "$DELIMITER"
+done
+}

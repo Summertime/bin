@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+for OLD in "$@"; do
+	EXTS=$(file --brief --extension "${OLD}")
+	NEW=${OLD%.*}.${EXTS%%/*}
+	if [[ $OLD != $NEW && ! -e $NEW ]] ; then
+		mv "$OLD" "$NEW"
+	fi
+done
