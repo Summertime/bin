@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# https://github.com/Summertime/boilerplate-bash
+APP_ID=4a5bac1d7a9d4242bce070fa632fe0bc
+BASH_COMPAT=5.2
+if 
+	[[ ${BASH_COMPAT%.*} -gt ${BASH_VERSINFO[0]}	
+	|| ${BASH_COMPAT%.*} -eq ${BASH_VERSINFO[0]} 
+	&& ${BASH_COMPAT#*.} -gt ${BASH_VERSINFO[1]}
+	]]
+then
+	>&2 printf "Error: Bash's version is %s but script wants %s" \
+		"${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}" \
+		"$BASH_COMPAT"
+	exit 1
+fi
+shopt -s -o errexit nounset noclobber pipefail
+shopt -s extglob globstar lastpipe patsub_replacement
+
+
+NAME=$(basename -- "$0")
+VERS=0.1.0
+HELP="\
+NAME
+	$NAME $VERS
+
+SYNOPSIS
+	$NAME -h | --help
+	$NAME --version
+	$NAME FILE...
+
+DESCRIPTION
+	Resets permissions to reasonable defaults.
+
+OPTIONS
+	-h --help     Show this screen.
+	--version     Show version.
+
+SEE ALSO
+	https://goto.summerti.me/bin/tako
+"
+
+A=$(getopt --name "$NAME" --options h --longoptions help,version -- "$@")
+eval set -- "$A"; unset A
+
+while true; do
+	case "$1" in
+		* ) shift ;;&
+		-h | --help )
+			echo -n "$HELP"
+			exit
+		;;
+		-v | --version )
+			echo "$VERS"
+			exit
+		;;
+		-- ) break ;;
+		*  ) echo 'Internal error!' >&2 ; exit 1 ;;
+	esac
+done
+
+chown "$USER" -- "$@" 
+chmod -R a=,u=rwX,g=rX -- "$@"
